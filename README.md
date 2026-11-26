@@ -169,7 +169,7 @@ The scoring prompt was evaluated on the same 10 fictional dental-clinic leads ge
 | `needs_review` responses | 0 | 0 |
 | Critical Hot → Cold errors | 0 | 0 |
 
-V2 clarified category definitions, provided a score guide for each category, and added tie-break/scoring consistency rules. The JSON-only output schema was unchanged. Per-lead results are in [`docs/evaluation-results.json`](docs/evaluation-results.json); the two system prompts are in [`prompts/`](prompts/).
+V2 clarified category definitions, provided a score guide for each category, and added tie-break/scoring consistency rules. The JSON-only output schema was unchanged. Per-lead results are in [`docs/evaluation-results.json`](docs/evaluation-results.json), with a readable summary in [`docs/evaluation-results.md`](docs/evaluation-results.md); the two system prompts are in [`prompts/`](prompts/).
 
 **Evaluation limitation:** This is a small, synthetic, ChatGPT-generated test set with predefined expected labels and score ranges. The results measure agreement with that test set only; they do not establish real-world accuracy or guarantee performance on actual clinic leads. The evaluation should be repeated with representative, consented, appropriately protected data before real-world use.
 
@@ -215,9 +215,11 @@ n8n-ai-lead-scoring-automation/
 ├── test-data/
 │   └── test_leads.json
 ├── docs/
-│   └── evaluation-results.json
+│   ├── evaluation-results.json
+│   └── evaluation-results.md
 └── screenshots/
-    └── (workflow and execution screenshots to be added)
+    ├── README.md
+    └── .gitkeep
 ```
 
 ## Demo
