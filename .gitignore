@@ -1,6 +1,12 @@
-# Local secrets and n8n exports
+# Secrets and local runtime files
 .env
-*.env
+.env.*
+!.env.example
+*.pem
+*.key
 credentials.json
-*.credentials.json
+token.json
+.n8n/
 node_modules/
+.DS_Store
+Thumbs.db
