@@ -1,0 +1,157 @@
+{
+  "name": "Send Test Leads - Evaluation v1",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "e96066a7-876e-4eae-bc41-0d2f3b6381d6",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const leads = [\n  {\n    \"name\": \"Olivia Bennett\",\n    \"email\": \"olivia.bennett@example.com\",\n    \"phone\": \"2025550101\",\n    \"service\": \"emergency\",\n    \"message\": \"I have a throbbing toothache and my cheek has started swelling. I am struggling to sleep and need to know whether someone can see me today.\"\n  },\n  {\n    \"name\": \"Ethan Walker\",\n    \"email\": \"ethan.walker@example.com\",\n    \"phone\": \"2025550102\",\n    \"service\": \"implant\",\n    \"message\": \"I have already had a consultation elsewhere and decided to move forward with an implant. Could you tell me what records you need and whether I can schedule the first appointment this week?\"\n  },\n  {\n    \"name\": \"Sophia Carter\",\n    \"email\": \"sophia.carter@example.com\",\n    \"phone\": \"2025550103\",\n    \"service\": \"invisalign\",\n    \"message\": \"I have been comparing clear aligner options and would like to get started with a treatment plan. Do you have consultation appointments available next week?\"\n  },\n  {\n    \"name\": \"Mason Reed\",\n    \"email\": \"mason.reed@example.com\",\n    \"phone\": \"2025550104\",\n    \"service\": \"cleaning\",\n    \"message\": \"Could you share the price for a standard cleaning and let me know whether you accept new patients? I may be able to come in sometime next month.\"\n  },\n  {\n    \"name\": \"Ava Mitchell\",\n    \"email\": \"ava.mitchell@example.com\",\n    \"phone\": \"2025550105\",\n    \"service\": \"invisalign\",\n    \"message\": \"I am thinking about Invisalign and would like to understand the usual cost, payment plans, and how long treatment takes. I am not in a rush, but I would consider a consultation if the options fit my budget.\"\n  },\n  {\n    \"name\": \"Noah Foster\",\n    \"email\": \"noah.foster@example.com\",\n    \"phone\": \"2025550106\",\n    \"service\": \"veneers\",\n    \"message\": \"I have been considering veneers because I am unhappy with the shape of two front teeth. I would like to know whether I might be a candidate and what the process involves; I am probably looking at sometime later this year.\"\n  },\n  {\n    \"name\": \"Isabella Brooks\",\n    \"email\": \"isabella.brooks@example.com\",\n    \"phone\": \"2025550107\",\n    \"service\": \"checkup\",\n    \"message\": \"One of my back teeth has been a little sensitive on and off for about two weeks. It is not painful right now, so I am unsure whether I should make an appointment or just keep an eye on it.\"\n  },\n  {\n    \"name\": \"Lucas Gray\",\n    \"email\": \"lucas.gray@example.com\",\n    \"phone\": \"2025550108\",\n    \"service\": \"whitening\",\n    \"message\": \"I am collecting prices from several clinics for teeth whitening. I only need the lowest quoted price for now and do not plan to schedule a visit.\"\n  },\n  {\n    \"name\": \"Mia Richardson\",\n    \"email\": \"mia.richardson@example.com\",\n    \"phone\": \"2025550109\",\n    \"service\": \"other\",\n    \"message\": \"Hello, I am looking for a receptionist position at your dental clinic. Could you tell me where to send my resume and whether you are currently hiring?\"\n  },\n  {\n    \"name\": \"James Cooper\",\n    \"email\": \"james.cooper@example.com\",\n    \"phone\": \"2025550110\",\n    \"service\": \"pediatric\",\n    \"message\": \"I am preparing a school presentation about children's dental care and wanted to ask whether your clinic has a general information brochure. I am not looking to make an appointment.\"\n  }\n];\n\n// Return one n8n item per lead. Expected labels and score ranges are intentionally excluded.\nreturn leads.map((lead) => ({\n  json: {\n    name: lead.name,\n    email: lead.email,\n    phone: lead.phone,\n    service: lead.service,\n    message: lead.message,\n  },\n}));"
+      },
+      "id": "0ff34e88-363c-468b-80a2-8e6879c4ccef",
+      "name": "Create 10 Test Leads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "60fdf468-9b12-4314-a5c8-4d2e40d3208c",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        512,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_N8N_DOMAIN/webhook/lead-ai",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": false,
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "93119de6-7beb-455d-b52b-356c25854782",
+      "name": "Send Lead to Main AI Webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        784,
+        128
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "amount": 8
+      },
+      "id": "33b301f1-aa82-413f-87fc-ddd4d3303a58",
+      "name": "Wait 8 Seconds",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1072,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "content": "\n# Lead Scoring Evaluation Workflow\n\n## Overview\nThis helper workflow evaluates the AI lead qualification system using 10 fictional dental clinic leads.\n\n## Workflow Process\n\n1. **Manual Trigger**\n   - Starts the evaluation process manually.\n\n2. **Test Data Generation**\n   - Generates 10 independent fictional lead items.\n   - Includes only name, email, phone, service, and message.\n   - Excludes expected categories and scores to prevent data leakage.\n\n3. **Sequential Processing**\n   - Uses Loop Over Items with a batch size of 1.\n   - Processes one lead at a time.\n   - Waits 8 seconds between requests.\n\n4. **HTTP Request**\n   - Sends each lead to the main AI workflow through its production webhook.\n   - Uses Header Auth for authentication.\n   - Continues processing if an individual request fails.\n\n## Evaluation Purpose\n- Measure AI lead category agreement.\n- Compare predicted scores against predefined expected ranges.\n- Track needs_review cases.\n- Identify critical Hot-to-Cold classification errors.\n\n## Test Data\nThe 10 fictional leads are based on a predefined evaluation dataset.\n\nExpected categories and score ranges are maintained separately and are never sent to the AI workflow.\n\n## Execution Instructions\n- Configure the production webhook URL and Header Auth credential.\n- Ensure the main AI workflow is active.\n- Execute this workflow manually.\n- Review the main workflow executions and AI_Lead_Scoring Data Table after submission.\n\n## Important\nThis is an evaluation-only workflow.\nDo not activate it for automatic execution.\nThe test email addresses use example.com. Never approve automatic email sending for these test leads.\n",
+        "height": 1008,
+        "width": 768
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        -1072
+      ],
+      "id": "61ef7b13-a8e6-4fbd-8fb7-f3567aa8c9ae",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Create 10 Test Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create 10 Test Leads": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Send Lead to Main AI Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Lead to Main AI Webhook": {
+      "main": [
+        [
+          {
+            "node": "Wait 8 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 8 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": []
+}
