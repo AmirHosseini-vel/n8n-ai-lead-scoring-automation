@@ -218,10 +218,15 @@ n8n-ai-lead-scoring-automation/
 │   ├── evaluation-results.json
 │   └── evaluation-results.md
 └── screenshots/
-    ├── README.md
-    └── .gitkeep
+    ├── .gitkeep
+    ├── 01-main-workflow-overview.png
+    ├── 02-ai-scoring-and-email-draft.png
+    ├── 03-telegram-human-approval.png
+    ├── 04-ai-lead-scoring-data.png
+    ├── 05-approved-email-execution.png
+    └── 06-prompt-evaluation-results.png
 ```
 
 ## Demo
 
-A walkthrough video and screenshots will be added after the final recording and review.
+The six workflow and evaluation screenshots are available in [`screenshots/`](screenshots/). A walkthrough video will be added after the final recording and review.
