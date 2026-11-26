@@ -1,0 +1,102 @@
+[
+  {
+    "name": "Olivia Bennett",
+    "email": "olivia.bennett@example.com",
+    "phone": "2025550101",
+    "service": "emergency",
+    "message": "I have a throbbing toothache and my cheek has started swelling. I am struggling to sleep and need to know whether someone can see me today.",
+    "expected_category": "hot",
+    "expected_score_range": "9-10",
+    "expected_reason": "The patient reports significant pain and swelling and is asking for urgent same-day care."
+  },
+  {
+    "name": "Ethan Walker",
+    "email": "ethan.walker@example.com",
+    "phone": "2025550102",
+    "service": "implant",
+    "message": "I have already had a consultation elsewhere and decided to move forward with an implant. Could you tell me what records you need and whether I can schedule the first appointment this week?",
+    "expected_category": "hot",
+    "expected_score_range": "8-10",
+    "expected_reason": "The patient has decided to proceed with treatment and wants to arrange an appointment this week."
+  },
+  {
+    "name": "Sophia Carter",
+    "email": "sophia.carter@example.com",
+    "phone": "2025550103",
+    "service": "invisalign",
+    "message": "I have been comparing clear aligner options and would like to get started with a treatment plan. Do you have consultation appointments available next week?",
+    "expected_category": "hot",
+    "expected_score_range": "8-9",
+    "expected_reason": "The patient has moved beyond general research and is asking to book a consultation soon to begin treatment."
+  },
+  {
+    "name": "Mason Reed",
+    "email": "mason.reed@example.com",
+    "phone": "2025550104",
+    "service": "cleaning",
+    "message": "Could you share the price for a standard cleaning and let me know whether you accept new patients? I may be able to come in sometime next month.",
+    "expected_category": "warm",
+    "expected_score_range": "5-6",
+    "expected_reason": "The person is interested and considering an appointment, but has no immediate need or firm booking plan."
+  },
+  {
+    "name": "Ava Mitchell",
+    "email": "ava.mitchell@example.com",
+    "phone": "2025550105",
+    "service": "invisalign",
+    "message": "I am thinking about Invisalign and would like to understand the usual cost, payment plans, and how long treatment takes. I am not in a rush, but I would consider a consultation if the options fit my budget.",
+    "expected_category": "warm",
+    "expected_score_range": "6-7",
+    "expected_reason": "The patient shows genuine interest and may book after learning about cost and payment options, but is not ready to schedule yet."
+  },
+  {
+    "name": "Noah Foster",
+    "email": "noah.foster@example.com",
+    "phone": "2025550106",
+    "service": "veneers",
+    "message": "I have been considering veneers because I am unhappy with the shape of two front teeth. I would like to know whether I might be a candidate and what the process involves; I am probably looking at sometime later this year.",
+    "expected_category": "warm",
+    "expected_score_range": "5-7",
+    "expected_reason": "The patient has a specific cosmetic concern and is exploring treatment, but the timing is distant and no appointment is requested."
+  },
+  {
+    "name": "Isabella Brooks",
+    "email": "isabella.brooks@example.com",
+    "phone": "2025550107",
+    "service": "checkup",
+    "message": "One of my back teeth has been a little sensitive on and off for about two weeks. It is not painful right now, so I am unsure whether I should make an appointment or just keep an eye on it.",
+    "expected_category": "warm",
+    "expected_score_range": "6-8",
+    "expected_reason": "The recurring sensitivity may indicate a real need for care, but the patient is uncertain about booking and does not describe an urgent situation."
+  },
+  {
+    "name": "Lucas Gray",
+    "email": "lucas.gray@example.com",
+    "phone": "2025550108",
+    "service": "whitening",
+    "message": "I am collecting prices from several clinics for teeth whitening. I only need the lowest quoted price for now and do not plan to schedule a visit.",
+    "expected_category": "cold",
+    "expected_score_range": "2-3",
+    "expected_reason": "The person is only comparing prices and explicitly says they do not intend to book an appointment."
+  },
+  {
+    "name": "Mia Richardson",
+    "email": "mia.richardson@example.com",
+    "phone": "2025550109",
+    "service": "other",
+    "message": "Hello, I am looking for a receptionist position at your dental clinic. Could you tell me where to send my resume and whether you are currently hiring?",
+    "expected_category": "cold",
+    "expected_score_range": "1-2",
+    "expected_reason": "This is a job inquiry rather than a request for dental treatment."
+  },
+  {
+    "name": "James Cooper",
+    "email": "james.cooper@example.com",
+    "phone": "2025550110",
+    "service": "pediatric",
+    "message": "I am preparing a school presentation about children's dental care and wanted to ask whether your clinic has a general information brochure. I am not looking to make an appointment.",
+    "expected_category": "cold",
+    "expected_score_range": "1-3",
+    "expected_reason": "The message is for an informational school project and explicitly has no patient or booking intent."
+  }
+]
