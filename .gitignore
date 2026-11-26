@@ -1,0 +1,6 @@
+# Local secrets and n8n exports
+.env
+*.env
+credentials.json
+*.credentials.json
+node_modules/
