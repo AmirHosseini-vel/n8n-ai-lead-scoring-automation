@@ -1,0 +1,1974 @@
+{
+  "name": "Lead Intake - Main Workflow (AI)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-ai",
+        "authentication": "headerAuth",
+        "options": {}
+      },
+      "id": "1645ad87-094a-4b45-b230-0b53344e987b",
+      "name": "Webhook - Receive Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a001",
+              "name": "name",
+              "value": "={{ String($json.body?.name ?? '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "a002",
+              "name": "email",
+              "value": "={{ String($json.body?.email ?? '').trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "a003",
+              "name": "phone",
+              "value": "={{ String($json.body?.phone ?? '').replace(/\\D/g, '') }}",
+              "type": "string"
+            },
+            {
+              "id": "a004",
+              "name": "service",
+              "value": "={{ String($json.body?.service ?? '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "a005",
+              "name": "message",
+              "value": "={{ String($json.body?.message ?? '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "a006",
+              "name": "created_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a18afffd-0997-4718-9dca-bcd09cb35fa6",
+      "name": "Edit Fields - Clean Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        288,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a101",
+              "leftValue": "={{ Boolean($json.name) && $json.email.includes('@') && $json.phone.length >= 7 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0b031a0a-2988-4a38-93f5-fb5820df587e",
+      "name": "IF - Is Lead Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a201",
+              "name": "status",
+              "value": "new",
+              "type": "string"
+            },
+            {
+              "id": "a202",
+              "name": "reason",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "e2392d6e-3133-4130-8f0a-4ff7db7c4950",
+      "name": "Edit Fields - Mark Valid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        848,
+        -672
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "Leads",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      },
+      "id": "9619ae79-704e-469d-b45d-9de80b84a32d",
+      "name": "Data Table - Save Valid Lead",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1072,
+        -672
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "={{ 'New lead received!\\nName: ' + $('Edit Fields - Clean Data').item.json.name + '\\nPhone: ' + $('Edit Fields - Clean Data').item.json.phone + '\\nService: ' + $('Edit Fields - Clean Data').item.json.service + '\\nEmail: ' + $('Edit Fields - Clean Data').item.json.email }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "85b1f504-feb9-4923-8dc0-9d7ce08caccc",
+      "name": "Telegram - Notify New Lead",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1296,
+        -672
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a301",
+              "name": "status",
+              "value": "invalid",
+              "type": "string"
+            },
+            {
+              "id": "a302",
+              "name": "reason",
+              "value": "={{ [!$json.name ? 'name is empty' : '', !$json.email.includes('@') ? 'email is missing or invalid' : '', $json.phone.length < 7 ? 'phone must contain at least 7 digits' : ''].filter(Boolean).join('; ') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "fe6caacf-b17a-4d60-bd84-b2ffc894abaa",
+      "name": "Edit Fields - Mark Invalid",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        960,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "Leads",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c4bfba26-4cc1-4472-b022-4a67cd59dab7",
+      "name": "Data Table - Save Invalid Lead",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1184,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Name: {{ $json.name }}\nService: {{ $json.service }}\nMessage: {{ $json.message }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are a lead-qualification assistant for a dental clinic. Read a website contact-form submission and assess the person's readiness to book an appointment.  Classify each lead using these categories: - hot: urgent or clearly ready to book soon. - warm: genuine interest or a specific dental concern, but no immediate booking commitment. - cold: not a potential patient, only gathering general information, or explicitly has no intention to book.  Use this 1-10 scoring guide: - 1-3 (cold): no realistic booking intent, unrelated inquiry, or purely casual/price-only research with no plan to visit. - 5-7 (warm): genuine interest or a specific concern, but no urgent or definite booking plan.   - 5: tentative or uncertain interest; mainly gathering information, comparing options, or considering a possible future visit.   - 6: a specific treatment interest or recurring concern with some possibility of booking, but no immediate urgency or firm commitment.   - 7: clear interest in taking a next step or considering an appointment later, while still lacking near-term urgency or a firm booking decision. - 8-10 (hot): urgent need or strong near-term booking intent.   - 8: has decided to pursue treatment or is clearly seeking a consultation soon.   - 9-10: urgent problem or explicit request for an immediate/near-term appointment; use 10 only for exceptionally clear urgency and readiness.  Scoring rules: - Score booking readiness, not the price or complexity of the requested treatment. - Asking about price or availability alone does not make a lead hot. - A specific dental concern can make a lead warm even when the person is uncertain about booking; do not automatically classify a non-urgent concern as hot. - A clear statement that the person does not intend to book should generally be cold. - When evidence is mixed, choose the less urgent category unless there is clear evidence of near-term booking intent or urgency. - Keep the score consistent with the selected category: cold 1-3, warm 5-7, hot 8-10.  Reply with ONLY a JSON object. Do not include markdown, code fences, or any text before or after the JSON. Use exactly these keys: {   \"summary\": \"1-2 sentences\",   \"score\": 7,   \"category\": \"warm\",   \"reason\": \"one short sentence\" }  Requirements: - summary must be 1-2 concise sentences. - score must be an integer from 1 to 10. - category must be exactly one of: hot, warm, cold. - reason must be one short sentence."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        896,
+        -224
+      ],
+      "id": "c66763c2-9d9d-4acd-9fff-37a81a5d9f07",
+      "name": "AI - Lead Scoring",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {
+          "temperature": 0.6
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        976,
+        -16
+      ],
+      "id": "7f93882c-73db-43e4-a6df-ff2ab458d739",
+      "name": "Groq Chat Model"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nconst rawValue = $json.text;\n\nlet rawText = \"\";\n\nif (typeof rawValue === \"string\") {\n  rawText = rawValue;\n} else if (rawValue !== undefined && rawValue !== null) {\n  try {\n    rawText = JSON.stringify(rawValue);\n  } catch {\n    rawText = String(rawValue);\n  }\n}\n\n// Retrieve the original lead data\nlet lead = {};\nlet leadReadError = \"\";\n\ntry {\n  const originalLead = $(\"Edit Fields - Clean Data\").item.json;\n\n  if (\n    originalLead &&\n    typeof originalLead === \"object\" &&\n    !Array.isArray(originalLead)\n  ) {\n    lead = originalLead;\n  } else {\n    leadReadError = \"Original lead data is unavailable.\";\n  }\n} catch (error) {\n  leadReadError = error.message || \"Could not read original lead data.\";\n}\n\n// Extract the first complete JSON object\nfunction extractFirstJsonObject(text) {\n  const startIndex = text.indexOf(\"{\");\n\n  if (startIndex === -1) {\n    return null;\n  }\n\n  let depth = 0;\n  let insideString = false;\n  let escaped = false;\n\n  for (let i = startIndex; i < text.length; i++) {\n    const char = text[i];\n\n    if (insideString) {\n      if (escaped) {\n        escaped = false;\n      } else if (char === \"\\\\\") {\n        escaped = true;\n      } else if (char === '\"') {\n        insideString = false;\n      }\n\n      continue;\n    }\n\n    if (char === '\"') {\n      insideString = true;\n    } else if (char === \"{\") {\n      depth++;\n    } else if (char === \"}\") {\n      depth--;\n\n      if (depth === 0) {\n        return text.slice(startIndex, i + 1);\n      }\n    }\n  }\n\n  return null;\n}\n\ntry {\n  if (leadReadError) {\n    throw new Error(leadReadError);\n  }\n\n  if (!rawText.trim()) {\n    throw new Error(\"AI output is missing or empty.\");\n  }\n\n  // Remove Markdown code fences if present\n  let cleanedText = rawText.trim();\n\n  cleanedText = cleanedText\n    .replace(/^```(?:json)?\\s*/i, \"\")\n    .replace(/\\s*```$/i, \"\")\n    .trim();\n\n  let parsed;\n\n  // First attempt: parse the complete response\n  try {\n    parsed = JSON.parse(cleanedText);\n  } catch {\n    // Second attempt: extract the first JSON object\n    const jsonBlock = extractFirstJsonObject(cleanedText);\n\n    if (!jsonBlock) {\n      throw new Error(\"No JSON object found in AI output.\");\n    }\n\n    parsed = JSON.parse(jsonBlock);\n  }\n\n  // Validate that the result is a JSON object\n  if (\n    !parsed ||\n    typeof parsed !== \"object\" ||\n    Array.isArray(parsed)\n  ) {\n    throw new Error(\"AI output must be a JSON object.\");\n  }\n\n  // Validate summary\n  const summary =\n    typeof parsed.summary === \"string\"\n      ? parsed.summary.trim()\n      : \"\";\n\n  // Validate and normalize score\n  const rawScore = parsed.score;\n\n  const score =\n    (typeof rawScore === \"number\" ||\n      (typeof rawScore === \"string\" &&\n        rawScore.trim() !== \"\"))\n      ? Number(rawScore)\n      : NaN;\n\n  // Validate and normalize category\n  const category =\n    typeof parsed.category === \"string\"\n      ? parsed.category.trim().toLowerCase()\n      : \"\";\n\n  // Validate reason\n  const reason =\n    typeof parsed.reason === \"string\"\n      ? parsed.reason.trim()\n      : \"\";\n\n  if (!summary) {\n    throw new Error(\"Summary is missing or invalid.\");\n  }\n\n  if (!Number.isInteger(score) || score < 1 || score > 10) {\n    throw new Error(\"Score must be an integer from 1 to 10.\");\n  }\n\n  if (![\"hot\", \"warm\", \"cold\"].includes(category)) {\n    throw new Error(\"Category must be hot, warm, or cold.\");\n  }\n\n  if (!reason) {\n    throw new Error(\"Reason is missing or invalid.\");\n  }\n\n  // Successful result\n  return {\n    json: {\n      ...lead,\n      ai_status: \"ok\",\n      summary,\n      score,\n      category,\n      reason\n    }\n  };\n\n} catch (error) {\n\n  // Never stop the workflow because of invalid AI output\n  return {\n    json: {\n      ...lead,\n      ai_status: \"needs_review\",\n      ai_raw: rawText.slice(0, 1000),\n      ai_error: error.message || \"Unknown AI parsing error.\"\n    }\n  };\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        -224
+      ],
+      "id": "74ee4125-256d-441b-a4f0-7a50cc837cb9",
+      "name": "Parse AI Output"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "AI_Lead_Scoring",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ai_status",
+              "displayName": "ai_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ai_raw",
+              "displayName": "ai_raw",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ai_error",
+              "displayName": "ai_error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email_draft",
+              "displayName": "email_draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "optimizeBulk": false
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1632,
+        -144
+      ],
+      "id": "3a62b9a0-dd39-430f-b145-405365ef5029",
+      "name": "Save AI Result"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "51215af4-ff3d-444b-a40c-ba099ee56435",
+              "leftValue": "={{ $json.ai_status }}",
+              "rightValue": "ok",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "9dd77afd-7796-4298-b978-8af736cee042",
+              "leftValue": "={{ $json.score }}",
+              "rightValue": 7,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        1856,
+        -144
+      ],
+      "id": "05f6c8e6-41a8-428d-95e3-c47caeba3fb5",
+      "name": "IF - High Score?"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a short follow-up email draft for this dental clinic lead.\n\nLead name: {{ $json.name }}\nRequested service: {{ $json.service }}\nOriginal message: {{ $json.message }}\nAI summary: {{ $json.summary }}\n\nWrite a personalized follow-up email in English.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are writing a follow-up email draft for a fictional dental clinic.  Your task is to write a short, polite and professional follow-up email based only on the information provided.  Important rules: - Use only facts provided in the lead information. - Never invent appointment dates or availability. - Never invent prices, insurance coverage or treatment outcomes. - Never make a medical diagnosis. - Do not promise that an appointment is available. - Acknowledge the person's inquiry and invite them to discuss the next steps and scheduling with the clinic. - Keep the email concise, friendly and professional. - Write in English. - This is only a draft for human review. Do not send any email.  Return exactly this format:  Subject: [email subject]  Body: [email body]"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        2192,
+        -464
+      ],
+      "id": "e07b16b7-206c-4036-b2f0-2b3aa25035b5",
+      "name": "AI - Follow-up Email Draft",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {
+          "temperature": 0.6
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        2272,
+        -240
+      ],
+      "id": "473a7e46-4ab3-4e48-a46c-5bfb9ae7c2ff",
+      "name": "Groq Chat Model1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "AI_Lead_Scoring",
+          "mode": "name"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $('Save AI Result').first().json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email_draft": "={{ $json.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ai_status",
+              "displayName": "ai_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ai_raw",
+              "displayName": "ai_raw",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ai_error",
+              "displayName": "ai_error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "email_draft",
+              "displayName": "email_draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2544,
+        -464
+      ],
+      "id": "1bfc9915-7677-4649-bd8c-267a290d06c1",
+      "name": "Update AI Result with Draft"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "message": "=HIGH-PRIORITY LEAD — HUMAN REVIEW REQUIRED\n\nName: {{ $('Save AI Result').first().json.name }}\nEmail: {{ $('Save AI Result').first().json.email }}\nService: {{ $('Save AI Result').first().json.service }}\n\nScore: {{ $('Save AI Result').first().json.score }}/10\nCategory: {{ $('Save AI Result').first().json.category }}\n\nSUMMARY:\n{{ $('Save AI Result').first().json.summary }}\n\nREASON:\n{{ $('Save AI Result').first().json.reason }}\n\nFOLLOW-UP EMAIL DRAFT:\n\n{{ $('AI - Follow-up Email Draft').first().json.text }}\n\nIMPORTANT:\nThis email has NOT been sent.\nPlease review the draft manually before sending.",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "✅ Approve & Send Email",
+            "disapproveLabel": "✋ I'll Send It Myself"
+          }
+        },
+        "chatApproval": true,
+        "options": {}
+      },
+      "id": "7e3fda05-a8cd-47b1-956c-cf8cd3ab5f58",
+      "name": "Telegram - High Priority Lead",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2880,
+        -352
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "d94c4663-96f4-4a71-bd03-6e681c06d761",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        3104,
+        -352
+      ],
+      "id": "bfd5db6a-03b5-44f6-9799-a302fa73ae06",
+      "name": "IF - Email Approved?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "AI_Lead_Scoring",
+          "mode": "name"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $('Save AI Result').first().json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email_status": "manual_send",
+            "approved_by_id": "={{ $json.data.responder.id }}",
+            "approved_by_username": "={{ $json.data.responder.username }}",
+            "approved_at": "={{ $json.data.respondedAt }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ai_status",
+              "displayName": "ai_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ai_raw",
+              "displayName": "ai_raw",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,              "removed": true
+            },
+            {
+              "id": "ai_error",
+              "displayName": "ai_error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "email_draft",
+              "displayName": "email_draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "email_status",
+              "displayName": "email_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "approved_by_id",
+              "displayName": "approved_by_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "approved_by_username",
+              "displayName": "approved_by_username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "approved_at",
+              "displayName": "approved_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email_sent_at",
+              "displayName": "email_sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3776,
+        -208
+      ],
+      "id": "a1b83030-9ab1-46ea-a0bf-24fb79fabb31",
+      "name": "Update - Manual Send"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "AI_Lead_Scoring",
+          "mode": "name"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $('Save AI Result').first().json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email_status": "approved_pending_send",
+            "approved_by_id": "={{ $json.data.responder.id }}",
+            "approved_by_username": "={{ $json.data.responder.username }}",
+            "approved_at": "={{ $json.data.respondedAt }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ai_status",
+              "displayName": "ai_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ai_raw",
+              "displayName": "ai_raw",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ai_error",
+              "displayName": "ai_error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "email_draft",
+              "displayName": "email_draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "email_status",
+              "displayName": "email_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "approved_by_id",
+              "displayName": "approved_by_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "approved_by_username",
+              "displayName": "approved_by_username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "approved_at",
+              "displayName": "approved_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email_sent_at",
+              "displayName": "email_sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3440,
+        -512
+      ],
+      "id": "bb2ffe9f-87f1-46d3-8efe-2714378f5406",
+      "name": "Update - Approved Pending Send"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3888,
+        -512
+      ],
+      "id": "efbaf5fd-b784-4925-8782-c318714db5e8",
+      "name": "Gmail - Send Approved Email"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nconst lead = $(\"Save AI Result\").first().json;\nconst draft = $(\"AI - Follow-up Email Draft\").first().json.text;\n\nif (!lead.email) {\n  throw new Error(\"Lead email address is missing.\");\n}\n\nif (typeof draft !== \"string\" || !draft.trim()) {\n  throw new Error(\"Email draft is missing.\");\n}\n\nconst subjectMatch = draft.match(/^Subject:\\s*(.+)$/im);\nconst bodyMatch = draft.match(/^Body:\\s*([\\s\\S]*)$/im);\n\nif (!subjectMatch || !bodyMatch || !bodyMatch[1].trim()) {\n  throw new Error(\"Could not extract email subject and body.\");\n}\n\nreturn {\n  json: {\n    to: lead.email,\n    subject: subjectMatch[1].trim(),\n    body: bodyMatch[1].trim(),\n    lead_id: lead.id\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3664,
+        -512
+      ],
+      "id": "375d11e3-9b6e-438b-bb01-81834d832b41",
+      "name": "Prepare Approved Email"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "AI_Lead_Scoring",
+          "mode": "name"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $('Save AI Result').first().json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email_status": "sent",
+            "email_sent_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "service",
+              "displayName": "service",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ai_status",
+              "displayName": "ai_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ai_raw",
+              "displayName": "ai_raw",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "ai_error",
+              "displayName": "ai_error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "email_draft",
+              "displayName": "email_draft",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "email_status",
+              "displayName": "email_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "approved_by_id",
+              "displayName": "approved_by_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "approved_by_username",
+              "displayName": "approved_by_username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "approved_at",
+              "displayName": "approved_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "email_sent_at",
+              "displayName": "email_sent_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4112,
+        -512
+      ],
+      "id": "6154e42a-8584-485e-8a3d-75902c6649e2",
+      "name": "Update - Mark Email Sent"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2368,
+        48
+      ],
+      "id": "a8f312c8-bd93-4fe3-b221-84defdbb8f8b",
+      "name": "End - No Automated Follow-up"
+    },
+    {
+      "parameters": {
+        "content": "LOW-PRIORITY LEADS\n\nLeads with a score below 7 or an invalid AI status are stored without generating an automated follow-up email.",
+        "height": 112
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2304,
+        192
+      ],
+      "id": "3308de68-a6a3-493a-b26f-1ce0f1263e62",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "MANUAL EMAIL HANDLING\n\nThe reviewer chose to send the email manually.\nNo automated email is sent from this branch.",
+        "height": 112
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3712,
+        -64
+      ],
+      "id": "e8686a69-43f7-4d67-bbc3-803caa6773ce",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "WORKFLOW ENTRY POINT\n\nReceives new lead submissions through an authenticated webhook.",
+        "height": 96
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        -16
+      ],
+      "id": "1a00b173-4488-4698-a892-baa937eceb4d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "\n# AI-Powered Lead Intake & Qualification\n\n## Overview\nThis workflow automates dental clinic lead intake, validation, AI-powered qualification, and human-approved email follow-ups.\n\n## Workflow Process\n\n1. **Lead Intake & Validation**\n   - Receives lead submissions through an authenticated webhook.\n   - Normalizes and validates incoming data.\n   - Stores valid and invalid submissions separately.\n\n2. **AI Lead Qualification**\n   - Uses Groq GPT-OSS 120B to summarize, score, and categorize valid leads.\n   - Parses and validates the AI-generated JSON output.\n   - Marks invalid AI responses as `needs_review`.\n\n3. **AI Result Storage & Prioritization**\n   - Stores qualification results in the `AI_Lead_Scoring` Data Table.\n   - Prioritizes leads with a valid AI status and a score of 7 or higher.\n\n4. **Follow-up Email Drafting**\n   - Uses Groq GPT-OSS 20B to generate personalized email drafts.\n   - Stores the draft in the corresponding lead record.\n\n5. **Human Approval via Telegram**\n   - Sends high-priority lead details and the email draft to Telegram.\n   - Waits for a human approval decision.\n   - Records whether the reviewer approved automated sending or chose to send manually.\n\n6. **Approved Email Dispatch**\n   - Sends the email through Gmail only after explicit human approval.\n   - Updates the lead record after successful sending.\n   - Does not automatically send emails for rejected or unreviewed leads.\n\n## Safety & Reliability\n- AI output is validated before further processing.\n- Invalid AI responses are preserved for manual review.\n- No email is sent without human approval.\n- Separate AI models are selected based on task complexity.\n\n## Requirements\n- n8n self-hosted\n- Groq API credentials\n- Telegram Bot credentials\n- Gmail OAuth2 credentials\n- Configured n8n Data Tables\n- Header Auth webhook credentials\n\n## Important\nConfigure credentials and Data Tables before execution.\nNever expose API keys, OAuth secrets, Telegram credentials, or private webhook URLs in shared workflow exports.\n",
+        "height": 1120,
+        "width": 864
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        -1568
+      ],
+      "id": "f309430f-68e5-4429-a360-43f21d31632f",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Receive Lead": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields - Clean Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields - Clean Data": {
+      "main": [
+        [
+          {
+            "node": "IF - Is Lead Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Is Lead Valid?": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields - Mark Valid",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI - Lead Scoring",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields - Mark Invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields - Mark Valid": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Save Valid Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Table - Save Valid Lead": {
+      "main": [
+        [
+          {
+            "node": "Telegram - Notify New Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields - Mark Invalid": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Save Invalid Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI - Lead Scoring",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI - Lead Scoring": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Output": {
+      "main": [
+        [
+          {
+            "node": "Save AI Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save AI Result": {
+      "main": [
+        [
+          {
+            "node": "IF - High Score?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - High Score?": {
+      "main": [
+        [
+          {
+            "node": "AI - Follow-up Email Draft",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "End - No Automated Follow-up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI - Follow-up Email Draft",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI - Follow-up Email Draft": {
+      "main": [
+        [
+          {
+            "node": "Update AI Result with Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update AI Result with Draft": {
+      "main": [
+        [
+          {
+            "node": "Telegram - High Priority Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram - High Priority Lead": {
+      "main": [
+        [
+          {
+            "node": "IF - Email Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Email Approved?": {
+      "main": [
+        [
+          {
+            "node": "Update - Approved Pending Send",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update - Manual Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update - Approved Pending Send": {
+      "main": [
+        [
+          {
+            "node": "Prepare Approved Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Approved Email": {
+      "main": [
+        [
+          {
+            "node": "Gmail - Send Approved Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail - Send Approved Email": {
+      "main": [
+        [
+          {
+            "node": "Update - Mark Email Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "nodeGroups": [
+    {
+      "id": "b1543d67-206a-432d-b240-bd309631df14",
+      "name": "Lead Preparation & Validation",
+      "nodeIds": [
+        "a18afffd-0997-4718-9dca-bcd09cb35fa6",
+        "0b031a0a-2988-4a38-93f5-fb5820df587e"
+      ],
+      "description": "Normalizes incoming lead data and validates required fields before routing submissions."
+    },
+    {
+      "id": "e73c54c8-5644-47fa-ae62-7684e61a781d",
+      "name": "Valid Lead Handling",
+      "nodeIds": [
+        "e2392d6e-3133-4130-8f0a-4ff7db7c4950",
+        "9619ae79-704e-469d-b45d-9de80b84a32d",
+        "85b1f504-feb9-4923-8dc0-9d7ce08caccc"
+      ],
+      "description": "Marks valid leads, stores their details, and sends an initial Telegram notification."
+    },
+    {
+      "id": "3e5f5e0b-27a6-456e-90e6-da6f114307d3",
+      "name": "Invalid Lead Handling",
+      "nodeIds": [
+        "fe6caacf-b17a-4d60-bd84-b2ffc894abaa",
+        "c4bfba26-4cc1-4472-b022-4a67cd59dab7"
+      ],
+      "description": "Marks invalid submissions and stores them for review without further processing."
+    },
+    {
+      "id": "14551229-0874-4651-901b-95530cbd2a36",
+      "name": "AI Lead Qualification",
+      "nodeIds": [
+        "c66763c2-9d9d-4acd-9fff-37a81a5d9f07",
+        "7f93882c-73db-43e4-a6df-ff2ab458d739",
+        "74ee4125-256d-441b-a4f0-7a50cc837cb9"
+      ],
+      "description": "Analyzes valid leads with GPT-OSS 120B, parses the response, and validates AI-generated results."
+    },
+    {
+      "id": "925e0c74-7936-4bd2-82ba-7a1feb4a4c01",
+      "name": "AI Result & Priority Routing",
+      "nodeIds": [
+        "3a62b9a0-dd39-430f-b145-405365ef5029",
+        "05f6c8e6-41a8-428d-95e3-c47caeba3fb5"
+      ],
+      "description": "Stores AI qualification results and routes qualified leads with a score of 7 or higher."
+    },
+    {
+      "id": "f7671c5c-104f-4fb6-882e-ed9392ac230f",
+      "name": "Follow-up Draft Generation",
+      "nodeIds": [
+        "e07b16b7-206c-4036-b2f0-2b3aa25035b5",
+        "473a7e46-4ab3-4e48-a46c-5bfb9ae7c2ff",
+        "1bfc9915-7677-4649-bd8c-267a290d06c1"
+      ],
+      "description": "Generates a personalized follow-up email draft with GPT-OSS 20B and saves it to the lead record."
+    },
+    {
+      "id": "3b955f50-12d9-4b5f-b803-94ce3e5ce076",
+      "name": "Human Approval",
+      "nodeIds": [
+        "7e3fda05-a8cd-47b1-956c-cf8cd3ab5f58",
+        "bfd5db6a-03b5-44f6-9799-a302fa73ae06"
+      ],
+      "description": "Sends high-priority leads to Telegram and waits for an authorized human approval decision."
+    },
+    {
+      "id": "bec14bcb-c0ab-4142-b82e-a74498f7c5d3",
+      "name": "Approved Email Dispatch",
+      "nodeIds": [
+        "bb2ffe9f-87f1-46d3-8efe-2714378f5406",
+        "efbaf5fd-b784-4925-8782-c318714db5e8",
+        "375d11e3-9b6e-438b-bb01-81834d832b41",
+        "6154e42a-8584-485e-8a3d-75902c6649e2"
+      ],
+      "description": "Prepares and sends the human-approved email, then records its successful delivery status."
+    }
+  ]
+}
