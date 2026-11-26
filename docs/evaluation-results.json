@@ -173,6 +173,10 @@
     "v2_score": 2,
     "v2_status": "ok",
     "critical_v1": false,
-    "critical_v2": false
+    "critical_v2": false,
+    "v1_category_ok": true,
+    "v1_score_ok": true,
+    "v2_category_ok": true,
+    "v2_score_ok": true
   }
 ]
