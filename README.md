@@ -229,4 +229,4 @@ n8n-ai-lead-scoring-automation/
 
 ## Demo
 
-The six workflow and evaluation screenshots are available in [`screenshots/`](screenshots/). A walkthrough video will be added after the final recording and review.
+Watch the [project demo on YouTube](https://youtu.be/4X1zLryVeU8) (Unlisted). The six workflow and evaluation screenshots are available in [`screenshots/`](screenshots/).
